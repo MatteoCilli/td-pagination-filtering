@@ -4,10 +4,40 @@ FSJS Project 2 - Data Pagination and Filtering
 */
 
 // Global Variables
-
+const page = document.querySelector('.page');
+const pageHeader = document.querySelector('.header');
+const fullStudentList = data;
 const maxStudentsPerPage = 9;
 let filteredStudentList = [];
+let searchString = '';
 
+const searchDiv = document.createElement('div');
+const searchInput = document.createElement('input');
+const searchInputIMG = document.createElement('img');
+const pageButtonsDiv = document.createElement('div');
+const pageButtonsUl = document.createElement('ul');
+const noResultsDiv = document.createElement('div');
+
+// Append elements to create a search bar
+searchDiv.className = 'student-search';
+searchInput.placeholder = 'Search for students...';
+searchInputIMG.src = 'img/search.png'
+searchDiv.appendChild(searchInput);
+searchDiv.appendChild(searchInputIMG);
+pageHeader.appendChild(searchDiv);
+
+// Append elements for pagination buttons
+pageButtonsDiv.className = 'pagination';
+pageButtonsDiv.appendChild(pageButtonsUl);
+page.appendChild(pageButtonsDiv);
+
+// Append element to display if no one shows up to the party
+noResultsDiv.textContent = 'Sorry Jack, no students here, only malarkey...';
+noResultsDiv.style.fontSize = '1.5rem';
+noResultsDiv.style.margin = '4rem';
+noResultsDiv.style.textAlign = 'center';
+noResultsDiv.style.display = 'none';
+page.appendChild(noResultsDiv);
 
 // function to generate list items
 function generateListItem(student) {
@@ -26,18 +56,9 @@ function generateListItem(student) {
     return listItem;
 }
 
-
 //** showPage function
 
 const showPage = (list, button) => {
-    // Append element to display if no one matches the search
-    noResultsDiv.textContent = 'Sorry Jack, no students here, only malarkey...';
-    noResultsDiv.style.fontSize = '1.5rem';
-    noResultsDiv.style.margin = '4rem';
-    noResultsDiv.style.textAlign = 'center';
-    noResultsDiv.style.display = 'none';
-    page.appendChild(noResultsDiv);
-
     const ul = document.querySelector('.student-list');
     ul.innerHTML = '';
 
@@ -58,3 +79,70 @@ const showPage = (list, button) => {
 };
 
 //** addPagination function
+
+const addPagination = (studentList) => {
+    let numOfStudents = studentList.length;
+    let numPages = Math.ceil(numOfStudents / maxStudentsPerPage);
+
+    let selectedButton = 1;
+    pageButtonsUl.innerHtml = '';
+
+    // calling showPage function
+    showPage(studentList, selectedButton);
+
+    // equally distribute buttons among the people, comrade
+    for (let i = 0; i < numPages; i++) {
+        let button = document.createElement('li');
+        let btnAnchor = document.createElement('a');
+        btnAnchor.href = '#/';
+        // Activate the first button
+        if (i === 0) {
+            btnAnchor.className = 'active';
+        }
+        btnAnchor.textContent = i + 1;
+        button.appendChild(btnAnchor);
+        pageButtonsUl.appendChild(button)
+    }
+
+    // update page when new page button clicked
+    pageButtonsUl.addEventListener('click', (e) => {
+        let previousButton = document.querySelector('.active');
+        previousButton.className = '';
+        selectedButton = e.target.textContent;
+        if (selectedButton != '12345') {
+            e.target.className = 'active';
+            showPage(studentList, selectedButton);
+        } else {
+            e.preventDefault;
+        }
+    });
+};
+
+// update filteredStudentList using search query and refresh page
+const filterQuery = () => {
+    filteredStudentList = [];
+    if (searchString.length === 0) {
+        // use fullStudentList is searchString is empty
+        showPage(fullStudentList);
+    } else {
+        for (let i = 0; i < fullStudentList.length; i++) {
+            let name = fullStudentList[i].name.first.toLowerCase();
+            let surname = fullStudentList[i].name.last.toLowerCase();
+            // if the student's name or surname contains the search query substring
+            if (name.includes(searchString) || (surname.includes(searchString))) {
+                // add student to filteredStudentList
+                filteredStudentList.push(data[i]);
+            }
+        }
+        showPage(filteredStudentList);
+    }
+};
+
+searchInput.addEventListener('input', () => {
+    searchString = searchInput.value;
+    filterQuery();
+});
+
+
+// call initially 
+addPagination(fullStudentList);
